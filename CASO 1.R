@@ -8,62 +8,89 @@ install.packages("markovchain")
 library(markovchain)
 library(MASS)
 
+#Se leen los datos de los archivos .csv de cada mes
+DatosNoviembre<- read.csv("/Users/camilonavarro/Downloads/Nov-Grupo.csv", sep=",", dec=".")
+DatosDiciembre<- read.csv("/Users/camilonavarro/Downloads/Dic-Grupo.csv", sep=",", dec=".")
+DatosEnero<- read.csv("/Users/camilonavarro/Downloads/Ene-Grupo.csv", sep=",", dec=".")
+
+#Se declaran las "secuencias iniciales", estas aun no han sido divididas por cliente
+Seq_Nov_Inicial<-DatosNoviembre[,2]
+Seq_Dic_Inicial<-DatosDiciembre[,2]
+Seq_Ene_Inicial<-DatosEnero[,2]
+
+#Se separa la secuencia por cliente
+Seq_Nov <- split(DatosNoviembre$Secuencia, DatosNoviembre$Cliente, drop=FALSE)
+Seq_Dic <- split(DatosDiciembre$Secuencia, DatosDiciembre$Cliente, drop=FALSE)
+Seq_Ene <- split(DatosEnero$Secuencia, DatosEnero$Cliente, drop=FALSE)
+
+#Se crean las matrices de frecuencia
+Frec_Nov<-createSequenceMatrix(Seq_Nov)
+Frec_Dic<-createSequenceMatrix(Seq_Dic)
+Frec_Ene<-createSequenceMatrix(Seq_Ene)
+
+Bar_Nov<-barplot(Frec_Nov, main="FRECUENCIA NOVIEMBRE", col=c("antiquewhite4", "antiquewhite3", "antiquewhite"))
+Bar_Dic<-barplot(Frec_Dic, main="FRECUENCIA DICIEMBRE", col=c("antiquewhite4", "antiquewhite3", "antiquewhite"))
+Bar_Ene<-barplot(Frec_Ene, main="FRECUENCIA ENERO", col=c("antiquewhite4", "antiquewhite3", "antiquewhite"))
 
 #Se declaran los estados de la variable
 Estados<- c("A", "B", "C", "W", "L")
 
-#Llenamos la matriz de frecuencias de saltos, obtenida con excel
-Frec_Nov<-matrix(c(905, 575, 0, 0, 375, 
-                    0, 386, 427, 0, 306, 
-                    0, 0, 207, 157, 269, 
-                    0,0,0,1,0,
-                    0,0,0,0,1), 
-                  nrow=5, byrow=TRUE)
+#Se crean las matrices de transicion y las DTCM
 
-#Se calcula la matriz de transicion
+#NOVIEMBRE
 Trans_Nov<-Frec_Nov/rowSums(Frec_Nov)
+Trans_Nov[4,4]<-1
+Trans_Nov[5,5]<-1
+Trans_Nov[4,1]<-0
+Trans_Nov[4,2]<-0
+Trans_Nov[4,3]<-0
+Trans_Nov[4,5]<-0
+Trans_Nov[5,1]<-0
+Trans_Nov[5,2]<-0
+Trans_Nov[5,3]<-0
+Trans_Nov[5,4]<-0
 
-#Se crea la DTMC
 mcNoviembre<-new("markovchain", states=Estados, byrow=TRUE, 
                  transitionMatrix=Trans_Nov, name="Noviembre")
 
-#Hcemos lo mismo para Diciembre y Enero
-
-Frec_Dec<-matrix(c(10111, 6088, 0, 0, 3912, 
-                    0, 4004, 4607, 0, 3048, 
-                    0, 0, 1964, 1567, 3040, 
-                    0,0,0,1,0,
-                    0,0,0,0,1), 
-                  nrow=5, byrow=TRUE)
-
-Trans_Dec<-Frec_Dec/rowSums(Frec_Dec)
-
+#DICIEMBRE
+Trans_Dic<-Frec_Dic/rowSums(Frec_Dic)
+Trans_Dic[4,4]<-1
+Trans_Dic[5,5]<-1
+Trans_Dic[4,1]<-0
+Trans_Dic[4,2]<-0
+Trans_Dic[4,3]<-0
+Trans_Dic[4,5]<-0
+Trans_Dic[5,1]<-0
+Trans_Dic[5,2]<-0
+Trans_Dic[5,3]<-0
+Trans_Dic[5,4]<-0
 mcDiciembre<-new("markovchain", states=Estados, byrow=TRUE, 
-                 transitionMatrix=Trans_Dec, name="Diciembre")
+                 transitionMatrix=Trans_Dic, name="Diciembre")
 
-
-
-Frec_Ene<-matrix(c(3988, 2300, 0, 0, 1554, 
-                   0, 1533, 1731, 0, 1179, 
-                   0, 0, 738, 610, 1121, 
-                   0,0,0,1,0,
-                   0,0,0,0,1), 
-                 nrow=5, byrow=TRUE)
-
+#ENERO
 Trans_Ene<-Frec_Ene/rowSums(Frec_Ene)
+Trans_Ene[4,4]<-1
+Trans_Ene[5,5]<-1
+Trans_Ene[4,1]<-0
+Trans_Ene[4,2]<-0
+Trans_Ene[4,3]<-0
+Trans_Ene[4,5]<-0
+Trans_Ene[5,1]<-0
+Trans_Ene[5,2]<-0
+Trans_Ene[5,3]<-0
+Trans_Ene[5,4]<-0
+mcNoviembre<-new("markovchain", states=Estados, byrow=TRUE, 
+                 transitionMatrix=Trans_Dic, name="Enero")
 
-
-mcEnero<-new("markovchain", states=Estados, byrow=TRUE, 
-                 transitionMatrix=Trans_Ene, name="Enero")
-
-#Vemos un resumen de las tres DTCM obtenidas y las imprimimos
-show(mcNoviembre)
+#Imprimimos las cadenas y vemos su respectivo resumen
+mcNoviembre
 summary(mcNoviembre)
 
-show(mcDiciembre)
-summary(mcDiciembre)
+mcDiciembre
+summary(mcNoviembre)
 
-show(mcEnero)
+mcEnero
 summary(mcEnero)
 
 
@@ -72,12 +99,19 @@ absNov<-absorptionProbabilities(mcNoviembre)
 absDic<-absorptionProbabilities(mcDiciembre)
 absEne<-absorptionProbabilities(mcEnero)
 
+absNov
+absDic
+absEne
+
 
 #Sacamos los tiempos esperados de absorcion para cada mes
 tNov<-meanAbsorptionTime(mcNoviembre)
-tDic<-meanAbsorptionTime(mcDiciembre)
+tNtDic<-meanAbsorptionTime(mcDiciembre)
 tEne<-meanAbsorptionTime(mcEnero)
 
+tNov
+tDic
+tEne
 
 #Graficamos las DTMC
 PlotNov<-as(mcNoviembre, "markovchain")
@@ -88,6 +122,11 @@ plot(PlotDec)
 
 PlotEne<-as(mcEnero, "markovchain")
 plot(PlotEne)
+
+assessStationarity()
+assessOrder()
+verifyHomogeneity(mcNoviembre, verbose=TRUE)
+verifyMarkovProperty(mcNoviembre, verbose=TRUE)
 
 #END
 
